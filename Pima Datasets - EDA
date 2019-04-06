@@ -1,0 +1,133 @@
+## Asssignment 1 / Project 1 - Exploratory Analysis on Pima-Indian-Diabetes Dataset.
+# Importing the Required libraries needed
+import os
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# check what is the current working directory Python is referring to and change it to the correct working directory using Os librarty functions
+print(os.getcwd())
+os.chdir('C:\\Users\\gssvmadu\\Desktop\\2 - Self Learning\\Great Learning  - AIML')
+print(os.getcwd())
+
+#Importing or loading the Pima dataset and asigned to a object called 'dataset' 
+dataset = pd.read_csv("diabetes.csv")
+#Using the Pima diabetes datasets, we are going to explore and derive the insights using exploratory data analysis techniques. But before jumping into detail, let's take a look at the dataset holistically
+dataset
+dataset.shape
+
+#Checking the column names
+print(dataset.columns.values)
+
+## so there are 786 rows/lines with 9 variables or columns in the Pima datasets. Let's visualize and understand each of the 9 variables what is it all about
+dataset.head()
+
+#Based on output of the below commands, observed in each of the 9 columns no null values are available and only two types of data is availalble in the entire dataset (either Integer or Float values)
+print(dataset.info())
+
+#check whether there any null values
+print("Checking whether any null Values")
+print(dataset.isnull().sum())
+dataset[~dataset.applymap(np.isreal).all(1)]
+
+# checking how many unique values or levels are there in each variable. We can see Glucose, BMI and DiabetesPedigreeFunction have very different reading levels in the observations. In case of DiabetesPedigreefunction out of total 768 observations, 517 carrynig the different readings whereas 251 with same readings
+print("Checking how many unique Values")
+cols = dataset.columns.values
+for col in cols:
+    print (col, dataset[col].nunique())
+    
+    print(dataset.describe())
+###### Individual variable analysis and observations ################
+# Descripte function gives mainly the five number summary (such as Mean, Standard deviation, Minmum Value, Maximum Value, Percentile values). Helps to get an idea on how values in each variable is distributed
+#observations - 1) Pregnanancies: Observed on an average every patient more than 3 times pregnant with one notable observation of maximum 17 number of times the patient got pregnant(should we consider it as outlier or study whether there is any directive relationship to the outcome -diabetes) and there are patient without pregnancy as well. 
+# 1) Since Standard deviation is 3.3 on no of pregnanceis and the average / mean is 3.8 which indicates the standard deviation is closer to mean and we have lesser deviation 
+# 2) Glucose - The glucose level level between the different patients vary greatly as the average standss at 121 mg with a of +/- 32 mg. One to notice is there are cases of 0 glucose level not sure whether it is valid measurement of one having a zero glucose level
+# 3) BP - seeing blood presesure reading 0 which may is not possible where the reading or recorded value might be wrong. May be some error in the observation made. Same goes for BMI, Skinthickness, Glucose and Insulin too.
+#4) Skin Thickness - Similar like Pregnancies value, even skinthickness also displays lower standard deviation to average 
+# 5) Insulin - since the standard deviation is more than `mean which would indicate data in this variable is skewed positively with quite a few outliers. Even to support that, even the maximum value shows 848 whereas average lies around 80. Third is on the 75% percentile, since 75% of the data lies within the range of 0-127.5 the remaining portion (max values) lies between 127 - 846 which also indicates a kind of more larger postive outlier values lies in the data (undestanding is when precentile divides 100 equal group when the last group ie, > 75% shows broader range it might indicates more outliers or anomaly in the data (just my take of understanding here))
+# 6) BMI - Aveage BMI Index is 32 which might indicates on an average the given patients are carries obesity (although not severe). However notice there are cases of top 25% percentile falls between the range of 36 to 67 BMI and more than half of the population (50% percentile) ranges more than 32 BMI
+# 7) Diabetes Pedigree - 
+# 8) Age - Average age of the patient is 33 with younger patient of 21 years old and older patient of 81 years old
+# 9) Outcome - Average number of patients having diabetes is around 34 person in the given dataset. Which means out of 768 observations, nearly 286 observations having diabetes remaining 500 without diabetes
+
+#out of entire dataset, 34% of the patients showed a sign of diabetes. We need to dig down to individual features to get better insights from the data. We will start by exploring impact of different variables/ features on diabetes or outcome. And then we will further dive into how multiple features are responsible to impact the target. 
+
+dataset.groupby(['Outcome']).count()
+dataset.groupby(['Age',"Pregnancies"]).count()
+
+Grouped_diab = dataset.groupby('Outcome')
+Grouped_diab.describe().transpose()
+dataset.boxplot(column = 'Glucose', by = 'Outcome', layout=(3,4), figsize = (30,40))
+print("Person with higher glucose level are observed to have postivie results in diabetes. Mostly when the person with the glucose level between 120-140 have a higher chances of diabetes. NOte there are clear outliers present in the variable.Out of the given variables, glucose could be one of the extremely important variable in predicting the diabetes")
+dataset.boxplot(column = 'BMI', by = 'Outcome', layout=(3,4), figsize = (30,40))
+print("Person with higher BMI level are observed to have postivie results in diabetes. Mostly when the person with the BMI level between 30-40 have a higher chances of diabetes (there are few readings of 40+ as well but most cases are 30-40). NOte there are clear outliers present in the variable. Exhibits a better distribution however few cases are not clearly evident as we can see a person with BMI level between 20-60 also living healthy without diabetes and also cases identified with diabetes. No one have diabetes when they have BMI ranging 18 - 25 (keeping zero out)")
+
+dataset.boxplot(column = 'Pregnancies', by = 'Outcome', layout=(3,4), figsize = (30,40))
+print("Person with more no of pregnancies are observed to have higher chances of diabetes. A person with more 3 pregnancies have a higher chances. There are couple of outlier values")
+dataset.boxplot(column = 'Age', by = 'Outcome', layout=(3,4), figsize = (30,40))
+print("When a Person gets older higher chances of diabetes. Although there are cases where diabetes are observed in younger age population too. A person more than 30 years will have higher chances commpartively with lesser age population")
+
+dataset.boxplot(column = 'DiabetesPedigreeFunction', by = 'Outcome', layout=(3,4), figsize = (30,40))
+print("Not a good indicator")
+
+dataset.boxplot(column = 'Insulin', by = 'Outcome', layout=(3,4), figsize = (30,40))
+#no clear evidence whether Insulin level helps to identify diabetes
+
+dataset.boxplot(column = 'BloodPressure', by = 'Outcome', layout=(3,4), figsize = (30,40))
+#no clear indication
+dataset.boxplot(column = 'SkinThickness', by = 'Outcome', layout=(3,4), figsize = (30,40))
+#no clear evidence whether skinthickness helps to identify diabetes
+# Let's dig deep in relation with multiple variables. Check how the variables are ccorrelate with each other. Using the pairplot in Seaborn library since it also plot the histogram for the univariate along the diagonal
+sns.pairplot(dataset, hue = 'Outcome')
+
+# We can get the clear correlation values as well for each pair with the below command. 
+corr = dataset.corr()
+corr
+
+#even we can plot it in a heat map for easy visualization
+sns.heatmap(corr, vmax = 1, vmin = -1, annot= True)
+
+plt.scatter(dataset.Age, dataset.Pregnancies, c = dataset.Outcome, alpha = 0.5)
+plt.xlabel("Age")
+plt.ylabel("Pregnancies")
+#no clear evidance when age and number of pregnancies is more, a person is diagonosed with diabetes
+
+plt.scatter(dataset.Insulin, dataset.Glucose, c = dataset.Outcome, alpha = 0.5)
+plt.xlabel("Insulin")
+plt.ylabel("Glucose")
+#Lower inslulin and glucose level for non-diabetic person and low to high insulin and glucose level for diabetic
+
+plt.scatter(dataset.Age, dataset.Glucose, c = dataset.Outcome)
+plt.xlabel("Age")
+plt.ylabel("Glucose")
+
+# A person with low range of BMI and Skinthickness dint' have diabetes
+
+plt.scatter(dataset.BMI, dataset.SkinThickness, c = dataset.Outcome)
+plt.xlabel("BMI")
+plt.ylabel("SkinThickness")
+# A person with low range of BMI and Skinthickness dint' have diabetes
+
+plt.scatter(dataset.BMI, dataset.DiabetesPedigreeFunction, c = dataset.Outcome)
+plt.xlabel("BMI")
+plt.ylabel("DiabetesPedigreeFunction")
+
+##### Conclusive Remarks####
+# Inital obserations on the data
+# 1) In total, there are 768 observations with 9 variables (one being the target or outcome variable)
+# 2) Out of 768, 500 observations are for person without diabetes (65%) and 268 observations with diabetes (35%)
+# 1) Age is considered as integer and similarly number of times of pregnant also seems to be integer. However both attributes contains a finite values which could be considerd or converted to a factor valules
+# 2) Considering the age of the population, seeing most of the population is young between 21 to 30 and few more than 50 years
+# 4) There are zero values observed (which looks to be non realistic) especially in BMI, insulin, Skinthickkness, Glucose and Blood pressure). 
+# 5) Similarly noticed few outlier values as well in age, no of pregnancies, glucose, BMI, Blood pressure as well. Although BP, Glucose, BMI, Age could be possible but we can counter-check.
+
+# Based on the observations from Visualizations, figured out that
+# 1) Histogram - Glucose, BP, Skinthickness and BMI looks normally distributed whereas prenancies, insulin, age and pedigreefunction indicates as exponnential. We can test the normality
+# 2) Pairplot and boxpot - No evident relationship between age vs outcome (however with the little evidence, observed that as one person is more prone to As one person is more prone to diabetes which has higher chance to manifest as an individual gets older) and similar no evidence between pedigree function and outcome. Since i udnerstand Pedigree function is more related to identify whether any of the relations have diabetes (to consider the relation health history).
+# 3) Out of the given variable, we can see there is  high correlation between Glucose and outcome. there’s a clear difference in the amount of Glucose present in the patient who have been diagnosed with Diabetes and those who haven’t. There are little evidence in BMI and age. Since all these observed correlation are positve which indicates that a person higher glucose level will have high probabilities of diabetes. Similarly a person who gets older or greater the age with high glucose and high BMI have a high probabiity of identified with diabetes.
+# 4) When closely inspecting, there are still observable correlation (although not very obvious relationship) in Pedigreefunction, No of pregnacies and Insulin against outcome but would like to see whether this variable are intercorrelated to other independent variables.  Also the correlation between insulin and glucose is evident and similarly BMI and skinthickness is also clear with 0.39. Same goes for Skinthickness and Insulin as it shows a correlation of 0.44. Pregnancies: - With the above observations, considering number of pregnancies might be important features in the predictive model building excercise. As we have 0-17 number of times a persons are getting pregnant, may we group the ranges for better analysis or outcome. One additonal note the observations more than 6 times pregnant are distributed in the top 75% which means close to 200 observations out of 768 lies in the top percentile. glucose: Looks to be an extremely important feature in predicting diabetes")
+# 5) No clear differences is seen between two categories (0 and 1 outcome) meaning who have diabetes and who have not diabetes when it comes to Blood pressure, Pedigreefunction, Skinthickness and Insnulin and also observved a very low correlation for this variables which indicates these three variables may not be a good indicator for model building (studied that these variables are inter-coreelated with one or more independent variables already )
+# 6) Although there is no correlation between Insulin, but we can observe that non-diabetic person looks to have lower insulin level compare to diabetic person.
+# 7) Glucose have high correlation whereas BMI, age and no of pregnancies have moderate correlation.
+# 8) Higher the glucose level with regards to age, fairly higher chances of person being diabetic. 
